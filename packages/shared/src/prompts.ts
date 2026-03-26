@@ -1,3 +1,4 @@
+import type { AgentBackend } from "./agent-backends";
 import type {
   ChangedFile,
   ChangesFor,
@@ -13,6 +14,7 @@ const DEFAULT_BROWSER_MCP_SERVER_NAME = "browser";
 
 export interface ExecutionPromptOptions {
   readonly userInstruction: string;
+  readonly agentBackend: AgentBackend;
   readonly scope: ChangesFor["_tag"];
   readonly currentBranch: string;
   readonly mainBranch: string | undefined;
@@ -80,6 +82,17 @@ const getScopeStrategy = (scope: ChangesFor["_tag"]): string[] => {
   }
 };
 
+const getBrowserToolIntro = (agentBackend: AgentBackend, mcpName: string): string[] => {
+  if (agentBackend === "pi") {
+    return [
+      "You have browser tools registered directly in the agent session:",
+      'These are native pi custom tools, not MCP-prefixed tools, but the tool names are exactly: "open", "playwright", "screenshot", "console_logs", "network_requests", and "close".',
+    ];
+  }
+
+  return [`You have browser tools via the MCP server named "${mcpName}":`];
+};
+
 const formatTestCoverageSection = (testCoverage: TestCoverageReport | undefined): string[] => {
   if (!testCoverage || testCoverage.totalCount === 0) return [];
 
@@ -117,7 +130,7 @@ export const buildExecutionPrompt = (options: ExecutionPromptOptions): string =>
 
   return [
     "You are executing a browser regression test directly from repository context.",
-    `You have browser tools via the MCP server named "${mcpName}":`,
+    ...getBrowserToolIntro(options.agentBackend, mcpName),
     "",
     "1. open — Launch a browser and navigate to a URL.",
     "2. playwright — Execute Playwright code in Node. Globals: page (Page), context (BrowserContext), browser (Browser), ref(id) (resolves a snapshot ref like 'e4' to a Playwright Locator). Supports await. Return a value to get it back as JSON.",

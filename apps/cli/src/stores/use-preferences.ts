@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { promptHistoryStorage } from "@expect/supervisor";
-import type { AgentBackend } from "@expect/agent";
+import { DEFAULT_AGENT_BACKEND, type AgentBackend } from "@expect/shared";
 import { FLOW_INPUT_HISTORY_LIMIT } from "../constants";
 
 interface PreferencesStore {
@@ -20,7 +20,7 @@ interface PreferencesStore {
 export const usePreferencesStore = create<PreferencesStore>()(
   persist(
     (set) => ({
-      agentBackend: "claude",
+      agentBackend: DEFAULT_AGENT_BACKEND,
       browserHeaded: false,
       replayHost: "https://expect.dev",
       autoSaveFlows: true,

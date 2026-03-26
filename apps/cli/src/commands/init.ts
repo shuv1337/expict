@@ -63,10 +63,13 @@ export const runInit = async (options: InitOptions = {}) => {
   logger.break();
 
   const availableAgents = detectAvailableAgents();
+  logger.log(
+    `  Detected agents: ${availableAgents.length > 0 ? availableAgents.join(", ") : "none"}`,
+  );
 
   if (availableAgents.length === 0) {
     logger.error(
-      "No supported coding agent found. expect requires one of: Claude Code, Codex, or Cursor.",
+      "No supported coding agent found. expect requires one of: Claude Code, Codex, or Pi.",
     );
     logger.break();
     logger.log(`  Install one to get started:`);
@@ -76,7 +79,9 @@ export const runInit = async (options: InitOptions = {}) => {
     logger.log(
       `    ${highlighter.info("Codex")}        ${highlighter.dim("https://github.com/openai/codex")}`,
     );
-    logger.log(`    ${highlighter.info("Cursor")}       ${highlighter.dim("https://cursor.com")}`);
+    logger.log(
+      `    ${highlighter.info("Pi")}           ${highlighter.dim("https://github.com/badlogic/pi-mono")}`,
+    );
     logger.break();
     process.exit(1);
   }

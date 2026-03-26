@@ -11,7 +11,7 @@ export interface EventMap {
   "plan:rejected": { readonly plan_id: string };
 
   // Execution
-  "run:started": { readonly plan_id: string };
+  "run:started": { readonly plan_id: string; readonly agent_backend?: string };
   "run:completed": {
     readonly plan_id: string;
     readonly passed: number;
@@ -19,8 +19,13 @@ export interface EventMap {
     readonly step_count: number;
     readonly file_count: number;
     readonly duration_ms: number;
+    readonly agent_backend?: string;
   };
-  "run:failed": { readonly plan_id: string; readonly error_tag: string };
+  "run:failed": {
+    readonly plan_id: string;
+    readonly error_tag: string;
+    readonly agent_backend?: string;
+  };
   "run:cancelled": undefined;
 
   // Steps
@@ -46,6 +51,7 @@ export interface EventMap {
     readonly mode: "interactive" | "headless";
     readonly skip_planning: boolean;
     readonly browser_headed: boolean;
+    readonly agent_backend?: string;
   };
   "session:ended": { readonly session_ms: number };
 

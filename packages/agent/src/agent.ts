@@ -2,17 +2,18 @@ import { Effect, FileSystem, Layer, Option, Schema, ServiceMap, Stream } from "e
 import {
   AcpAdapter,
   AcpClient,
-  type AcpProviderUnauthenticatedError,
-  type AcpProviderUsageLimitError,
-  type AcpSessionCreateError,
-  type AcpStreamError,
+  type AgentProviderUnauthenticatedError,
+  type AgentProviderUsageLimitError,
+  type AgentSessionCreateError,
+  type AgentStreamError,
   type SessionId,
 } from "./acp-client";
 import { AcpSessionUpdate } from "@expect/shared/models";
+import { type AgentBackend } from "@expect/shared";
+export type { AgentBackend } from "@expect/shared";
 import { AgentStreamOptions } from "./types";
 import { NodeServices } from "@effect/platform-node";
-
-export type AgentBackend = "claude" | "codex";
+import { PiBinaryNotFoundError, PiClient, PiUnsupportedVersionError } from "./pi-client";
 
 export class Agent extends ServiceMap.Service<
   Agent,
@@ -21,16 +22,22 @@ export class Agent extends ServiceMap.Service<
       options: AgentStreamOptions,
     ) => Stream.Stream<
       AcpSessionUpdate,
-      | AcpStreamError
-      | AcpSessionCreateError
-      | AcpProviderUnauthenticatedError
-      | AcpProviderUsageLimitError
+      | AgentStreamError
+      | AgentSessionCreateError
+      | AgentProviderUnauthenticatedError
+      | AgentProviderUsageLimitError
+      | PiBinaryNotFoundError
+      | PiUnsupportedVersionError
     >;
     readonly createSession: (
       cwd: string,
     ) => Effect.Effect<
       SessionId,
-      AcpSessionCreateError | AcpProviderUnauthenticatedError | AcpProviderUsageLimitError
+      | AgentSessionCreateError
+      | AgentProviderUnauthenticatedError
+      | AgentProviderUsageLimitError
+      | PiBinaryNotFoundError
+      | PiUnsupportedVersionError
     >;
   }
 >()("@expect/Agent") {
@@ -53,9 +60,36 @@ export class Agent extends ServiceMap.Service<
 
   static layerCodex = Agent.layerAcp.pipe(Layer.provide(AcpAdapter.layerCodex));
   static layerClaude = Agent.layerAcp.pipe(Layer.provide(AcpAdapter.layerClaude));
+  static layerPi = Layer.effect(Agent)(
+    Effect.gen(function* () {
+      const piClient = yield* PiClient;
 
-  static layerFor = (backend: AgentBackend) =>
-    backend === "claude" ? Agent.layerClaude : Agent.layerCodex;
+      return Agent.of({
+        createSession: (cwd) => piClient.createSession(cwd),
+        stream: (options) =>
+          piClient.stream({
+            cwd: options.cwd,
+            sessionId: Option.map(options.sessionId, (id) => id as SessionId),
+            prompt: options.prompt,
+            systemPrompt: options.systemPrompt,
+            mcpEnv: options.mcpEnv,
+          }),
+      });
+    }),
+  ).pipe(Layer.provide(PiClient.layer));
+
+  static layerFor = (backend: AgentBackend) => {
+    switch (backend) {
+      case "claude":
+        return Agent.layerClaude;
+      case "codex":
+        return Agent.layerCodex;
+      case "pi":
+        return Agent.layerPi;
+      default:
+        return Agent.layerClaude;
+    }
+  };
 
   static layerTest = (fixturePath: string) =>
     Layer.effect(

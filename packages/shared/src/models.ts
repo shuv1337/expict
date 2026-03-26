@@ -1,4 +1,5 @@
 import { DateTime, Match, Option, Predicate, Schema } from "effect";
+import { AGENT_BACKENDS, AGENT_BACKEND_DISPLAY_NAMES } from "./agent-backends";
 
 export interface SavedFlowStep {
   id: string;
@@ -209,14 +210,11 @@ export interface CommitSummary {
   subject: string;
 }
 
-export const AgentProvider = Schema.Literals(["claude", "codex", "cursor"] as const);
+export const AgentProvider = Schema.Literals(AGENT_BACKENDS);
 export type AgentProvider = typeof AgentProvider.Type;
 
-export const AGENT_PROVIDER_DISPLAY_NAMES: Record<AgentProvider, string> = {
-  claude: "Claude",
-  codex: "Codex",
-  cursor: "Cursor",
-};
+export const AGENT_PROVIDER_DISPLAY_NAMES: Record<AgentProvider, string> =
+  AGENT_BACKEND_DISPLAY_NAMES;
 const TOOL_CALL_DISPLAY_TEXT_CHAR_LIMIT = 80;
 
 export class FileStat extends Schema.Class<FileStat>("@ami/FileStat")({

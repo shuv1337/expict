@@ -30,6 +30,7 @@ export const runHeadless = (options: HeadlessRunOptions) =>
           mode: "headless",
           skip_planning: false,
           browser_headed: options.headed,
+          agent_backend: options.agent,
         });
 
         console.log(`expect v${VERSION}`);
@@ -37,12 +38,16 @@ export const runHeadless = (options: HeadlessRunOptions) =>
         console.log("Starting browser test...");
 
         const runStartedAt = Date.now();
-        yield* analytics.capture("run:started", { plan_id: "direct" });
+        yield* analytics.capture("run:started", {
+          plan_id: "direct",
+          agent_backend: options.agent,
+        });
         const seenEvents = new Set<string>();
         const finalExecuted = yield* executor
           .execute({
             changesFor: options.changesFor,
             instruction: options.instruction,
+            agentBackend: options.agent,
             isHeadless: !options.headed,
             requiresCookies: false,
           })
@@ -108,6 +113,7 @@ export const runHeadless = (options: HeadlessRunOptions) =>
           step_count: finalExecuted.steps.length,
           file_count: 0,
           duration_ms: Date.now() - runStartedAt,
+          agent_backend: options.agent,
         });
 
         yield* analytics.capture("session:ended", {

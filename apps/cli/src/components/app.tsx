@@ -17,7 +17,7 @@ import { useUpdateCheck } from "../hooks/use-update-check";
 import { clearInkDisplay } from "../utils/clear-ink-display";
 import { useStdoutDimensions } from "../hooks/use-stdout-dimensions";
 import { ALT_SCREEN_OFF, NPM_PACKAGE_NAME } from "../constants";
-import { AgentBackend } from "@expect/agent";
+import { type AgentBackend } from "@expect/shared";
 import { useAtomSet } from "@effect/atom-react";
 import { agentProviderAtom } from "../data/runtime";
 import { Option } from "effect";

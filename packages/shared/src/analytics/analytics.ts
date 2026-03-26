@@ -1,4 +1,4 @@
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, ServiceMap } from "effect";
 import { ChildProcess } from "effect/unstable/process";
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner";
 import { NodeServices } from "@effect/platform-node";
@@ -13,10 +13,6 @@ const POSTHOG_DEFAULT_HOST = "https://us.i.posthog.com";
 
 const posthogClient = new PostHog(POSTHOG_API_KEY, {
   host: POSTHOG_DEFAULT_HOST,
-});
-
-const ClaudeAuthStatusResponse = Schema.Struct({
-  email: Schema.String,
 });
 
 // ---------------------------------------------------------------------------
@@ -95,16 +91,6 @@ export class Analytics extends ServiceMap.Service<Analytics>()("@expect/Analytic
     const distinctId = yield* Effect.tryPromise(() => machineId()).pipe(Effect.orDie);
     const projectId = hash(process.cwd());
 
-    const getClaudeCodeEmail = Effect.fn("getClaudeCodeEmail")(function* () {
-      const stdout = yield* spawner
-        .string(ChildProcess.make("claude", ["auth", "status"]))
-        .pipe(Effect.timeout("5 seconds"));
-      const status = yield* Schema.decodeEffect(Schema.fromJsonString(ClaudeAuthStatusResponse))(
-        stdout,
-      );
-      return status.email;
-    });
-
     const getGitEmail = Effect.fn("getGitEmail")(function* () {
       const email = yield* spawner.string(ChildProcess.make("git", ["config", "user.email"])).pipe(
         Effect.timeout("5 seconds"),
@@ -128,11 +114,7 @@ export class Analytics extends ServiceMap.Service<Analytics>()("@expect/Analytic
     });
 
     yield* Effect.all({
-      email: getClaudeCodeEmail().pipe(
-        Effect.catchTag("PlatformError", () => getGitEmail()),
-        Effect.catchTag("TimeoutError", () => getGitEmail()),
-        Effect.catchTag("SchemaError", () => getGitEmail()),
-      ),
+      email: getGitEmail(),
       name: getGitName().pipe(Effect.catchCause(() => Effect.succeed(undefined))),
     }).pipe(
       Effect.tap(({ email, name }) => provider.identify({ distinctId, email, name })),

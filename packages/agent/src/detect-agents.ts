@@ -1,8 +1,9 @@
 import { execSync } from "node:child_process";
+import { AGENT_BACKENDS, type AgentBackend } from "@expect/shared";
 
-export type SupportedAgent = "claude" | "codex" | "cursor";
+export type SupportedAgent = AgentBackend;
 
-const SUPPORTED_AGENTS: readonly SupportedAgent[] = ["claude", "codex", "cursor"];
+const SUPPORTED_AGENTS: readonly SupportedAgent[] = AGENT_BACKENDS;
 
 const isCommandAvailable = (command: string): boolean => {
   try {

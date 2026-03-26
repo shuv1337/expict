@@ -26,7 +26,7 @@ Options:
   -m, --message <instruction>   natural language instruction for what to test
   -f, --flow <slug>             reuse a saved flow by slug
   -y, --yes                     skip plan review, run immediately
-  -a, --agent <provider>        agent provider to use (claude or codex)
+  -a, --agent <provider>        agent provider to use (claude, codex, or pi)
   -t, --target <target>         what to test: unstaged, branch, or changes (default: changes)
   --verbose                     enable verbose logging
   -v, --version                 print version

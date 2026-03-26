@@ -394,6 +394,7 @@ export const TestingScreen = ({
       options: {
         changesFor,
         instruction: instructionWithUrls,
+        agentBackend,
         isHeadless: !browserHeaded,
         requiresCookies,
         savedFlow,
@@ -657,7 +658,25 @@ export const TestingScreen = ({
         </Box>
 
         {AsyncResult.builder(executionResult)
-          .onError((error) => <ErrorMessage type="error" error={error} />)
+          .onError((error) => (
+            <ErrorMessage
+              type="error"
+              error={{
+                _tag:
+                  typeof error === "object" && error !== null && "_tag" in error
+                    ? String(error._tag)
+                    : "Error",
+                displayName:
+                  typeof error === "object" && error !== null && "displayName" in error
+                    ? String(error.displayName)
+                    : undefined,
+                message:
+                  typeof error === "object" && error !== null && "message" in error
+                    ? String(error.message)
+                    : String(error),
+              }}
+            />
+          ))
           .onDefect((defect) => (
             <ErrorMessage
               type="defect"

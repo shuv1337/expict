@@ -295,7 +295,7 @@ export const MainMenu = ({ gitState }: MainMenuProps) => {
                 );
               }
 
-              const stats = gitState.workingTreeFileStats;
+              const stats = gitState?.workingTreeFileStats ?? [];
               const totalAdded = stats.reduce((sum, stat) => sum + stat.added, 0);
               const totalRemoved = stats.reduce((sum, stat) => sum + stat.removed, 0);
               return (

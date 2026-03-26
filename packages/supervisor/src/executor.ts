@@ -1,9 +1,11 @@
 import * as path from "node:path";
 import {
-  AcpProviderUnauthenticatedError,
-  AcpProviderUsageLimitError,
-  AcpSessionCreateError,
-  AcpStreamError,
+  AgentProviderUnauthenticatedError,
+  AgentProviderUsageLimitError,
+  AgentSessionCreateError,
+  AgentStreamError,
+  PiBinaryNotFoundError,
+  PiUnsupportedVersionError,
   Agent,
   AgentStreamOptions,
 } from "@expect/agent";
@@ -19,6 +21,7 @@ import {
   type TestCoverageReport,
   TestPlan,
 } from "@expect/shared/models";
+import { type AgentBackend } from "@expect/shared";
 import { buildExecutionPrompt } from "@expect/shared/prompts";
 import { NodeServices } from "@effect/platform-node";
 import { Git } from "./git/git";
@@ -34,10 +37,12 @@ export class ExecutionError extends Schema.ErrorClass<ExecutionError>("@supervis
   {
     _tag: Schema.tag("ExecutionError"),
     reason: Schema.Union([
-      AcpStreamError,
-      AcpSessionCreateError,
-      AcpProviderUnauthenticatedError,
-      AcpProviderUsageLimitError,
+      AgentStreamError,
+      AgentSessionCreateError,
+      AgentProviderUnauthenticatedError,
+      AgentProviderUsageLimitError,
+      PiBinaryNotFoundError,
+      PiUnsupportedVersionError,
     ]),
   },
 ) {
@@ -48,6 +53,7 @@ export class ExecutionError extends Schema.ErrorClass<ExecutionError>("@supervis
 export interface ExecuteOptions {
   readonly changesFor: ChangesFor;
   readonly instruction: string;
+  readonly agentBackend: AgentBackend;
   readonly isHeadless: boolean;
   readonly requiresCookies: boolean;
   readonly baseUrl?: string;
@@ -91,6 +97,7 @@ export class Executor extends ServiceMap.Service<Executor>()("@supervisor/Execut
 
       const prompt = buildExecutionPrompt({
         userInstruction: options.instruction,
+        agentBackend: options.agentBackend,
         scope: options.changesFor._tag,
         currentBranch: context.currentBranch,
         mainBranch: context.mainBranch,

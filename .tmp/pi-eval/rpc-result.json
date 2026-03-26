@@ -1,0 +1,51 @@
+{
+  "option": "rpc",
+  "textContainsDone": true,
+  "textContainsSteered": true,
+  "thinkingLength": 0,
+  "toolStarts": 0,
+  "toolUpdates": 0,
+  "toolEnds": 0,
+  "agentEnds": 3,
+  "sessionIdBeforeNewSession": "19fa07fc-0687-49a7-a12a-e6a34188c897",
+  "sessionIdAfterNewSession": "f764dc86-2299-4630-9b1f-5772c41668dd",
+  "sessionChangedAfterNewSession": true,
+  "state1": {
+    "id": "state-2",
+    "type": "response",
+    "command": "get_state",
+    "success": true,
+    "data": {
+      "model": {
+        "id": "claude-opus-4-6",
+        "name": "Claude Opus 4.6",
+        "api": "anthropic-messages",
+        "provider": "anthropic",
+        "baseUrl": "https://api.anthropic.com",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "cost": {
+          "input": 5,
+          "output": 25,
+          "cacheRead": 0.5,
+          "cacheWrite": 6.25
+        },
+        "contextWindow": 1000000,
+        "maxTokens": 128000
+      },
+      "thinkingLevel": "high",
+      "isStreaming": false,
+      "isCompacting": false,
+      "steeringMode": "one-at-a-time",
+      "followUpMode": "one-at-a-time",
+      "sessionId": "19fa07fc-0687-49a7-a12a-e6a34188c897",
+      "autoCompactionEnabled": true,
+      "messageCount": 2,
+      "pendingMessageCount": 0
+    }
+  },
+  "stderr": ""
+}

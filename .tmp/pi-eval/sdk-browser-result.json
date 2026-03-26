@@ -1,0 +1,12 @@
+{
+  "option": "sdk-browser-tools",
+  "textContainsBrowserOk": true,
+  "toolStarts": 3,
+  "toolUpdates": 1,
+  "toolEnds": 3,
+  "toolNamesCalled": [
+    "open",
+    "screenshot",
+    "close"
+  ]
+}

@@ -23,42 +23,47 @@ import { NodeServices } from "@effect/platform-node";
 export const SessionId = Schema.String.pipe(Schema.brand("SessionId"));
 export type SessionId = typeof SessionId.Type;
 
-export class AcpStreamError extends Schema.ErrorClass<AcpStreamError>("AcpStreamError")({
-  _tag: Schema.tag("AcpStreamError"),
+export class AgentStreamError extends Schema.ErrorClass<AgentStreamError>("AgentStreamError")({
+  _tag: Schema.tag("AgentStreamError"),
   cause: Schema.Unknown,
 }) {
   displayName = `An unexpected error occurred while streaming`;
   message = `Streaming failed: ${this.cause}`;
 }
 
-export class AcpProviderUnauthenticatedError extends Schema.ErrorClass<AcpProviderUnauthenticatedError>(
-  "AcpProviderUnauthenticatedError",
+export class AgentProviderUnauthenticatedError extends Schema.ErrorClass<AgentProviderUnauthenticatedError>(
+  "AgentProviderUnauthenticatedError",
 )({
-  _tag: Schema.tag("AcpProviderUnauthenticatedError"),
+  _tag: Schema.tag("AgentProviderUnauthenticatedError"),
   provider: AgentProvider,
 }) {
   displayName = `Your ${this.provider} agent is not authenticated`;
   message = Match.value(this.provider).pipe(
     Match.when("claude", () => "Please log in using `claude login`, and then re-run expect."),
     Match.when("codex", () => "Please log in using `codex login`, and then re-run expect."),
+    Match.when(
+      "pi",
+      () =>
+        "Please authenticate pi via `/login` or configure a provider API key in `~/.pi/agent/auth.json`, and then re-run expect.",
+    ),
     Match.orElse(() => "Please sign in to your coding agent, and then re-run expect."),
   );
 }
 
-export class AcpProviderUsageLimitError extends Schema.ErrorClass<AcpProviderUsageLimitError>(
-  "AcpProviderUsageLimitError",
+export class AgentProviderUsageLimitError extends Schema.ErrorClass<AgentProviderUsageLimitError>(
+  "AgentProviderUsageLimitError",
 )({
-  _tag: Schema.tag("AcpProviderUsageLimitError"),
+  _tag: Schema.tag("AgentProviderUsageLimitError"),
   provider: AgentProvider,
 }) {
   displayName = `Your ${this.provider} agent has exceeded its usage limits`;
   message = `Usage limits exceeded for ${this.provider}. Please check your plan and billing.`;
 }
 
-export class AcpSessionCreateError extends Schema.ErrorClass<AcpSessionCreateError>(
-  "AcpSessionCreateError",
+export class AgentSessionCreateError extends Schema.ErrorClass<AgentSessionCreateError>(
+  "AgentSessionCreateError",
 )({
-  _tag: Schema.tag("AcpSessionCreateError"),
+  _tag: Schema.tag("AgentSessionCreateError"),
   cause: Schema.Unknown,
 }) {
   displayName = `Creating a chat session failed`;
@@ -129,7 +134,7 @@ export class AcpAdapter extends ServiceMap.Service<
         Effect.flatMap(({ loggedIn }) =>
           loggedIn
             ? Effect.void
-            : new AcpProviderUnauthenticatedError({
+            : new AgentProviderUnauthenticatedError({
                 provider: "claude",
               }).asEffect(),
         ),
@@ -249,16 +254,16 @@ export class AcpClient extends ServiceMap.Service<AcpClient>()("@expect/AcpClien
           const AUTH_ERRORS = ["authentication"];
 
           if (AUTH_ERRORS.some((error) => message.toLowerCase().includes(error))) {
-            return new AcpProviderUnauthenticatedError({
+            return new AgentProviderUnauthenticatedError({
               provider: adapter.provider,
             });
           }
           if (USAGE_LIMIT_ERRORS.some((error) => message.toLowerCase().includes(error))) {
-            return new AcpProviderUsageLimitError({
+            return new AgentProviderUsageLimitError({
               provider: adapter.provider,
             });
           }
-          return new AcpSessionCreateError({ cause });
+          return new AgentSessionCreateError({ cause });
         },
       }).pipe(
         Effect.map(({ sessionId }) => SessionId.makeUnsafe(sessionId)),
@@ -310,7 +315,7 @@ export class AcpClient extends ServiceMap.Service<AcpClient>()("@expect/AcpClien
             sessionId,
             prompt: [{ type: "text", text: prompt }],
           }),
-        catch: (cause) => new AcpStreamError({ cause }),
+        catch: (cause) => new AgentStreamError({ cause }),
       }).pipe(
         Effect.tap(() => Effect.logDebug("ACP prompt completed")),
         Effect.tap(() => Queue.end(updatesQueue)),

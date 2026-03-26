@@ -43,20 +43,20 @@ describe("detectAvailableAgents", () => {
     expect(agents).toEqual(["claude", "codex"]);
   });
 
-  it("detects cursor as a supported agent", () => {
+  it("detects pi as a supported agent", () => {
     mockedExecSync.mockImplementation((command) => {
-      if (String(command) === "which cursor") return Buffer.from("/usr/local/bin/cursor");
+      if (String(command) === "which pi") return Buffer.from("/usr/local/bin/pi");
       throw new Error("not found");
     });
 
     const agents = detectAvailableAgents();
-    expect(agents).toEqual(["cursor"]);
+    expect(agents).toEqual(["pi"]);
   });
 
-  it("checks all three supported agents", () => {
+  it("checks all supported agents", () => {
     mockedExecSync.mockImplementation(() => Buffer.from(""));
 
     const agents = detectAvailableAgents();
-    expect(agents).toEqual(["claude", "codex", "cursor"]);
+    expect(agents).toEqual(["claude", "codex", "pi"]);
   });
 });

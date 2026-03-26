@@ -97,10 +97,14 @@ const execute = Effect.fnUntraced(
 
     const executeOptions: ExecuteOptions = {
       ...input.options,
+      agentBackend: input.agentBackend,
       liveViewUrl,
     };
 
-    yield* analytics.capture("run:started", { plan_id: "direct" });
+    yield* analytics.capture("run:started", {
+      plan_id: "direct",
+      agent_backend: input.agentBackend,
+    });
 
     const finalExecuted = yield* executor.execute(executeOptions).pipe(
       Stream.tap((executed) =>
@@ -168,6 +172,7 @@ const execute = Effect.fnUntraced(
       step_count: finalExecuted.steps.length,
       file_count: 0,
       duration_ms: Date.now() - runStartedAt,
+      agent_backend: input.agentBackend,
     });
 
     if (report.status === "passed") {
@@ -194,6 +199,7 @@ export const executeFn = cliAtomRuntime.fn<ExecuteInput>()((input, ctx) =>
         yield* analytics.capture("run:failed", {
           plan_id: "direct",
           error_tag: errorTag,
+          agent_backend: input.agentBackend,
         });
       }).pipe(Effect.catchCause(() => Effect.void)),
     ),
@@ -229,10 +235,14 @@ export const executeAtomFn = cliAtomRuntime.fn(
 
       const executeOptions: ExecuteOptions = {
         ...input.options,
+        agentBackend: input.agentBackend,
         liveViewUrl,
       };
 
-      yield* analytics.capture("run:started", { plan_id: "direct" });
+      yield* analytics.capture("run:started", {
+        plan_id: "direct",
+        agent_backend: input.agentBackend,
+      });
 
       const finalExecuted = yield* executor.execute(executeOptions).pipe(
         Stream.tap((executed) =>
@@ -300,6 +310,7 @@ export const executeAtomFn = cliAtomRuntime.fn(
         step_count: finalExecuted.steps.length,
         file_count: 0,
         duration_ms: Date.now() - runStartedAt,
+        agent_backend: input.agentBackend,
       });
 
       if (report.status === "passed") {

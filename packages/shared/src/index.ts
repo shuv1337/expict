@@ -1,4 +1,10 @@
 export {
+  AGENT_BACKENDS,
+  AGENT_BACKEND_DISPLAY_NAMES,
+  DEFAULT_AGENT_BACKEND,
+  type AgentBackend,
+} from "./agent-backends";
+export {
   BROWSER_MEMORY_OVERHEAD_MB,
   DEFAULT_TIMEOUT_MS,
   MEMORY_SAFETY_RATIO,

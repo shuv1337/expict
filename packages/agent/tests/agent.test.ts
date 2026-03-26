@@ -9,8 +9,9 @@ const TEST_LAYERS: [
   string,
   Layer.Layer<Agent, PlatformError | AcpConnectionInitError | AcpAdapterNotFoundError>,
 ][] = [
-  ["codex-acp", Agent.layerCodex],
-  ["claude-acp", Agent.layerClaude],
+  ...(process.env.EXPECT_TEST_CODEX === "1" ? [["codex-acp", Agent.layerCodex] as const] : []),
+  ...(process.env.EXPECT_TEST_CLAUDE === "1" ? [["claude-acp", Agent.layerClaude] as const] : []),
+  ...(process.env.EXPECT_TEST_PI === "1" ? [["pi-sdk", Agent.layerPi] as const] : []),
 ];
 
 const makeOptions = (prompt: string): AgentStreamOptions =>
@@ -22,6 +23,11 @@ const makeOptions = (prompt: string): AgentStreamOptions =>
   });
 
 describe("Agent", () => {
+  if (TEST_LAYERS.length === 0) {
+    it.skip("set EXPECT_TEST_CLAUDE=1, EXPECT_TEST_CODEX=1, and/or EXPECT_TEST_PI=1 to run live agent integration tests", () => {});
+    return;
+  }
+
   TEST_LAYERS.forEach(([name, layer]) => {
     describe(name, () => {
       it("streams text response", async () => {

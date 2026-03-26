@@ -1,6 +1,6 @@
 # @expect/agent
 
-AI SDK providers for Claude and Codex. Implements `LanguageModelV3` so both work with `generateText` and `streamText`.
+Agent backends for Expect, including Claude, Codex, and Pi session integrations.
 
 ## Install
 

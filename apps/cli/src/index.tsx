@@ -5,12 +5,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./components/app";
 import { ALT_SCREEN_OFF, ALT_SCREEN_ON, VERSION } from "./constants";
 import { ChangesFor, Git } from "@expect/supervisor";
+import { DEFAULT_AGENT_BACKEND } from "@expect/shared";
 import { runHeadless } from "./utils/run-test";
 import { runInit } from "./commands/init";
 import { runAuditCommand } from "./commands/audit";
 import { isRunningInAgent } from "./utils/is-running-in-agent";
 import { isHeadless } from "./utils/is-headless";
-import type { AgentBackend } from "@expect/agent";
+import type { AgentBackend } from "@expect/shared";
 import { useNavigationStore, Screen } from "./stores/use-navigation";
 import { usePreferencesStore } from "./stores/use-preferences";
 import { queryClient } from "./query-client";
@@ -45,7 +46,7 @@ const program = new Command()
   .option("-m, --message <instruction>", "natural language instruction for what to test")
   .option("-f, --flow <slug>", "reuse a saved flow by its slug")
   .option("-y, --yes", "run immediately without confirmation")
-  .option("-a, --agent <provider>", "agent provider to use (claude or codex)")
+  .option("-a, --agent <provider>", "agent provider to use (claude, codex, or pi)")
   .option("-t, --target <target>", "what to test: unstaged, branch, or changes", "changes")
   .option("--verbose", "enable verbose logging")
   .option("--headed", "show a visible browser window during tests")
@@ -132,7 +133,7 @@ const runHeadlessForTarget = async (target: Target, opts: CommanderOpts) => {
   return runHeadless({
     changesFor,
     instruction: opts.message ?? DEFAULT_INSTRUCTION,
-    agent: opts.agent ?? "claude",
+    agent: opts.agent ?? DEFAULT_AGENT_BACKEND,
     verbose: opts.verbose ?? false,
     headed: opts.headed ?? false,
   });
@@ -141,7 +142,7 @@ const runHeadlessForTarget = async (target: Target, opts: CommanderOpts) => {
 const runInteractiveForTarget = async (target: Target, opts: CommanderOpts) => {
   const { changesFor } = await resolveChangesFor(target);
   seedStores(opts, changesFor);
-  renderApp(opts.agent ?? "claude");
+  renderApp(opts.agent ?? DEFAULT_AGENT_BACKEND);
 };
 
 program
@@ -178,7 +179,7 @@ program.action(async () => {
       browserHeaded: opts.headed ?? false,
       replayHost: opts.replayHost ?? "https://expect.dev",
     });
-    renderApp(opts.agent ?? "claude");
+    renderApp(opts.agent ?? DEFAULT_AGENT_BACKEND);
   }
 });
 

@@ -6,7 +6,7 @@ export default defineConfig({
     format: ["esm"],
     dts: true,
     deps: {
-      neverBundle: ["@anthropic-ai/claude-agent-sdk"],
+      neverBundle: ["@anthropic-ai/claude-agent-sdk", "@mariozechner/pi-coding-agent"],
     },
     sourcemap: true,
   },

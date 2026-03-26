@@ -20,6 +20,8 @@
     "@ai-sdk/provider": "^3.0.8",
     "@expect/browser": "workspace:*",
     "@expect/shared": "workspace:*",
+    "@mariozechner/pi-coding-agent": "^0.62.0",
+    "@sinclair/typebox": "^0.34.41",
     "@zed-industries/claude-agent-acp": "^0.22.2",
     "@zed-industries/codex-acp": "^0.10.0",
     "effect": "4.0.0-beta.35",

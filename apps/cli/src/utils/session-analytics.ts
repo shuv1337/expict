@@ -28,6 +28,7 @@ export const trackSessionStarted = () =>
     mode: "interactive",
     skip_planning: false,
     browser_headed: usePreferencesStore.getState().browserHeaded,
+    agent_backend: usePreferencesStore.getState().agentBackend,
   });
 
 export const flushSession = (sessionStartedAt: number) =>

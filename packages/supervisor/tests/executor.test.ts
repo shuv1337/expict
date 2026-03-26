@@ -9,6 +9,7 @@ import {
   ChangesFor,
   AcpSessionUpdate,
 } from "@expect/shared/models";
+import { mapPiEventToAcpUpdates } from "@expect/agent";
 
 const makeTestPlan = (): TestPlan =>
   new TestPlan({
@@ -36,6 +37,7 @@ const makeTestPlan = (): TestPlan =>
     baseUrl: Option.none(),
     isHeadless: false,
     requiresCookies: false,
+    testCoverage: Option.none(),
   } as any);
 
 const decode = Schema.decodeSync(AcpSessionUpdate);
@@ -70,6 +72,55 @@ const fixtureUpdates = [
 ].map((update) => decode(update));
 
 describe("reducer", () => {
+  it("reduces mapped pi events into ExecutedTestPlan", () => {
+    const piUpdates = [
+      {
+        type: "message_update",
+        message: {} as never,
+        assistantMessageEvent: {
+          type: "thinking_delta",
+          delta: "Inspecting the CLI startup flow.",
+        },
+      },
+      {
+        type: "message_update",
+        message: {} as never,
+        assistantMessageEvent: {
+          type: "text_delta",
+          delta:
+            "STEP_START|step-01|CLI Application Startup\nSTEP_DONE|step-01|CLI started successfully",
+        },
+      },
+      {
+        type: "tool_execution_start",
+        toolCallId: "tool-01",
+        toolName: "open",
+        args: { url: "http://localhost:3000" },
+      },
+      {
+        type: "tool_execution_end",
+        toolCallId: "tool-01",
+        toolName: "open",
+        args: { url: "http://localhost:3000" },
+        result: { content: [{ type: "text", text: "done" }] },
+        isError: false,
+      },
+    ] as const;
+
+    let executed = new ExecutedTestPlan({ ...makeTestPlan(), events: [] });
+    for (const piEvent of piUpdates) {
+      const updates = mapPiEventToAcpUpdates(piEvent as never);
+      for (const update of updates) {
+        executed = executed.addEvent(update);
+      }
+    }
+
+    expect(executed.events.some((event) => event._tag === "AgentThinking")).toBe(true);
+    expect(executed.events.some((event) => event._tag === "ToolCall")).toBe(true);
+    expect(executed.events.some((event) => event._tag === "ToolResult")).toBe(true);
+    expect(executed.steps[0]?.status).toBe("passed");
+  });
+
   it("reduces AcpSessionUpdates into ExecutedTestPlan", () => {
     const updates = fixtureUpdates;
     let executed = new ExecutedTestPlan({ ...makeTestPlan(), events: [] });

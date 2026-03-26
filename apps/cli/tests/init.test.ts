@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vite-plus/test";
-import { execSync } from "node:child_process";
+import { exec } from "node:child_process";
 import { detectPackageManager, runInit } from "../src/commands/init";
 
 const succeedSpy = vi.fn();
@@ -8,6 +8,7 @@ const mockDetectAvailableAgents = vi.fn();
 
 vi.mock("node:child_process", () => ({
   execSync: vi.fn(),
+  exec: vi.fn((command, callback) => callback(null)),
 }));
 
 vi.mock("@expect/agent", () => ({
@@ -27,7 +28,7 @@ vi.mock("../src/utils/prompts", () => ({
   prompts: vi.fn().mockResolvedValue({ installSkill: false }),
 }));
 
-const mockedExecSync = vi.mocked(execSync);
+const mockedExec = vi.mocked(exec);
 
 describe("init", () => {
   describe("detectPackageManager", () => {
@@ -89,7 +90,10 @@ describe("init", () => {
       delete process.env.npm_config_user_agent;
       vi.clearAllMocks();
       mockDetectAvailableAgents.mockReturnValue(["claude"]);
-      mockedExecSync.mockReturnValue(Buffer.from(""));
+      mockedExec.mockImplementation((_command, callback) => {
+        callback?.(null);
+        return {} as never;
+      });
     });
 
     afterEach(() => {
@@ -105,7 +109,7 @@ describe("init", () => {
     });
 
     it("proceeds when at least one agent is detected", async () => {
-      mockDetectAvailableAgents.mockReturnValue(["claude"]);
+      mockDetectAvailableAgents.mockReturnValue(["pi"]);
 
       await runInit({ yes: true });
 
@@ -114,42 +118,47 @@ describe("init", () => {
 
     it("global install command uses the detected package manager binary", async () => {
       process.env.npm_config_user_agent = "pnpm/8.15.0 node/v20.0.0";
+      mockDetectAvailableAgents.mockReturnValue(["pi"]);
 
       await runInit({ yes: true });
 
-      const installCall = mockedExecSync.mock.calls.find((call) => String(call[0]).includes("-g"));
+      const installCall = mockedExec.mock.calls.find((call) => String(call[0]).includes("-g"));
       expect(installCall).toBeDefined();
       expect(String(installCall![0])).toMatch(/^pnpm /);
     });
 
     it("uses vp binary when VITE_PLUS_CLI_BIN is set", async () => {
       process.env.VITE_PLUS_CLI_BIN = "/usr/local/bin/vp";
+      mockDetectAvailableAgents.mockReturnValue(["pi"]);
 
       await runInit({ yes: true });
 
-      const installCall = mockedExecSync.mock.calls.find((call) => String(call[0]).includes("-g"));
+      const installCall = mockedExec.mock.calls.find((call) => String(call[0]).includes("-g"));
       expect(installCall).toBeDefined();
       expect(String(installCall![0])).toMatch(/^vp /);
     });
 
     it("continues to skill install even when global install fails", async () => {
-      mockedExecSync.mockImplementation((command) => {
+      mockDetectAvailableAgents.mockReturnValue(["pi"]);
+      mockedExec.mockImplementation((command, callback) => {
         const cmd = String(command);
-        if (cmd.includes("-g")) throw new Error("install failed");
-        return Buffer.from("");
+        callback?.(cmd.includes("-g") ? new Error("install failed") : null);
+        return {} as never;
       });
 
       await runInit({ yes: true });
 
-      const skillCall = mockedExecSync.mock.calls.find((call) =>
+      const skillCall = mockedExec.mock.calls.find((call) =>
         String(call[0]).includes("skills add"),
       );
       expect(skillCall).toBeDefined();
     });
 
     it("shows spinner fail when install throws", async () => {
-      mockedExecSync.mockImplementation(() => {
-        throw new Error("install failed");
+      mockDetectAvailableAgents.mockReturnValue(["pi"]);
+      mockedExec.mockImplementation((_command, callback) => {
+        callback?.(new Error("install failed"));
+        return {} as never;
       });
 
       await runInit({ yes: true });
@@ -159,6 +168,7 @@ describe("init", () => {
 
     it("does not call prompts in non-interactive mode", async () => {
       const { prompts } = await import("../src/utils/prompts");
+      mockDetectAvailableAgents.mockReturnValue(["pi"]);
 
       await runInit({ yes: true });
 

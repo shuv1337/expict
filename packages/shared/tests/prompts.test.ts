@@ -5,6 +5,7 @@ const makeDefaultOptions = (
   overrides?: Partial<ExecutionPromptOptions>,
 ): ExecutionPromptOptions => ({
   userInstruction: "Test the login flow",
+  agentBackend: "claude",
   scope: "Changes",
   currentBranch: "feat/login",
   mainBranch: "main",
@@ -34,6 +35,13 @@ describe("buildExecutionPrompt", () => {
     expect(prompt).toContain("console_logs — Get browser console messages");
     expect(prompt).toContain("network_requests — Get captured network requests");
     expect(prompt).toContain("close — Close the browser");
+  });
+
+  it("uses pi-specific browser tool wording", () => {
+    const prompt = buildExecutionPrompt(makeDefaultOptions({ agentBackend: "pi" }));
+    expect(prompt).toContain("registered directly in the agent session");
+    expect(prompt).toContain("These are native pi custom tools");
+    expect(prompt).not.toContain('MCP server named "browser"');
   });
 
   it("includes step marker protocol", () => {

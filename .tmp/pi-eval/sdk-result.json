@@ -1,0 +1,14 @@
+{
+  "option": "sdk",
+  "sessionId1": "ec07a6fd-66dc-476c-8a36-e4e270cef255",
+  "sessionId2": "2188ed66-27a4-4ccb-b429-ef5e44006bf9",
+  "sessionChangedAfterNewSession": true,
+  "textContainsDone": true,
+  "textContainsSteered": true,
+  "toolStarts": 2,
+  "toolUpdates": 0,
+  "toolEnds": 2,
+  "agentEnds": 3,
+  "finalMessageCount": 4,
+  "steerResult": "completed"
+}
